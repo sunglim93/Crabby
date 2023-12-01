@@ -9,6 +9,8 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import RidgeCV
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error
 
 class SelectColumns( BaseEstimator, TransformerMixin):
     def __init__(self, columns, featureNum=2):
@@ -32,15 +34,37 @@ class SelectColumns( BaseEstimator, TransformerMixin):
 def main():
     data = pd.read_csv('train.csv')
     data = pd.get_dummies(data)
-    xs = data.drop(columns=['Age'])
+    xs = data.drop(columns=['Age', 'id'])
     ys = data['Age']
 
     steps = [
         ('impute', SimpleImputer(strategy='mean')),
         ('column_select', SelectColumns(columns=xs.columns.values)),
+        ('scale', MinMaxScaler()),
+        ('gradient_boost', GradientBoostingRegressor()),
     ]
     pipe = Pipeline(steps)
-    #add gridsearchcv here
+
+    grid = {
+    'impute__strategy' : ['mean'],
+    'column_select__featureNum' : [7,8,9],
+    'column_select__columns' : [xs.columns.values],
+    #'gradient_boost__min_impurity_decrease': [0.0, 0.1],
+    'gradient_boost__max_depth': [5],
+}
+    search = GridSearchCV(pipe, grid, scoring='r2')
+    search.fit(xs,ys)
+
+    print(search.best_score_)
+    print(search.best_params_)
+
+    predictions = search.predict(xs)
+    output = data.drop(columns = [col for col in data.columns.values if col != 'id'])
+    predictions = predictions.round(decimals=1)
+
+    output['yield'] = predictions
+
+    output.to_csv('output.csv', index=False)
 
 if __name__ == "__main__":
     main()

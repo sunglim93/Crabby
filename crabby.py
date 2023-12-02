@@ -11,6 +11,7 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import RidgeCV
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error
+import matplotlib.pyplot as plt
 
 class SelectColumns( BaseEstimator, TransformerMixin):
     def __init__(self, columns, featureNum=2):
@@ -65,6 +66,19 @@ def main():
     output['yield'] = predictions
 
     output.to_csv('output.csv', index=False)
+
+    plt.figure(figsize=(10,10))
+    plt.scatter(data['Age'], predictions, c='crimson')
+    plt.yscale('linear')
+    plt.xscale('linear')
+
+    p1 = max(max(predictions), max(data['Age']))
+    p2 = min(min(predictions), min(data['Age']))
+    plt.plot([p1, p2], [p1, p2], 'b-')
+    plt.xlabel('Age', fontsize=15)
+    plt.ylabel('Predicted', fontsize=15)
+    plt.axis('equal')
+    plt.show()
 
 if __name__ == "__main__":
     main()

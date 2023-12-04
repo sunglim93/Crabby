@@ -9,7 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.feature_selection import SelectFromModel
 from sklearn.linear_model import RidgeCV
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.cluster import KMeans
 from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
 
@@ -42,7 +42,7 @@ def main():
         ('impute', SimpleImputer(strategy='mean')),
         ('column_select', SelectColumns(columns=xs.columns.values)),
         ('scale', MinMaxScaler()),
-        ('gradient_boost', GradientBoostingRegressor()),
+        ('cluster', KMeans(n_clusters = 4, n_init='auto')),
     ]
     pipe = Pipeline(steps)
 
@@ -50,8 +50,7 @@ def main():
     'impute__strategy' : ['mean'],
     'column_select__featureNum' : [7,8,9],
     'column_select__columns' : [xs.columns.values],
-    #'gradient_boost__min_impurity_decrease': [0.0, 0.1],
-    'gradient_boost__max_depth': [5],
+    'cluster__n_clusters': range(1,16),
 }
     search = GridSearchCV(pipe, grid, scoring='r2')
     search.fit(xs,ys)
@@ -67,8 +66,8 @@ def main():
     output['yield'] = predictions
     plotdata['Predicted'] = predictions
 
-    output.to_csv('output.csv', index=False)
-    plotdata.to_csv('plotdata.csv', index=False)
+    output.to_csv('output2.csv', index=False)
+    plotdata.to_csv('plotdata2.csv', index=False)
 
     plt.figure(figsize=(10,10))
     plt.scatter(data['Age'], predictions, c='crimson')
